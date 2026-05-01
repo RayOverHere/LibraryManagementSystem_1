@@ -26,7 +26,7 @@ An elegant, minimalist, and secure library management system built with Laravel 
 
 1. **Clone the Repository**
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/RayOverHere/LibraryManagementSystem_1.git
    cd LibraryManagementSystem_1
    ```
 
