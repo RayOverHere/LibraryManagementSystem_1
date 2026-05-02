@@ -37,14 +37,14 @@
                         <img src="{{ asset('storage/' . $book->image) }}" alt="{{ $book->title }}" class="w-full h-full object-cover">
                     @else
                         <div class="w-2/3 h-4/5 border-2 border-navy/20 rounded flex items-center justify-center bg-white shadow-inner">
-                            <span class="text-navy/30 font-bold uppercase text-[10px] tracking-widest">{{ $book->category }}</span>
+                            <span class="text-navy/30 font-bold uppercase text-[10px] tracking-widest">{{ $book->category->name ?? 'None' }}</span>
                         </div>
                     @endif
                 </div>
                 <div class="p-6 flex-grow flex flex-col">
-                    <span class="text-[10px] bg-navy/5 text-navy px-2 py-1 rounded font-bold uppercase w-fit mb-3">{{ $book->category }}</span>
+                    <span class="text-[10px] bg-navy/5 text-navy px-2 py-1 rounded font-bold uppercase w-fit mb-3">{{ $book->category->name ?? 'None' }}</span>
                     <h3 class="text-navy font-bold text-lg mb-1 leading-tight">{{ $book->title }}</h3>
-                    <p class="text-slate text-sm mb-4">{{ $book->author }}</p>
+                    <p class="text-slate text-sm mb-4">{{ $book->authors->pluck('name')->implode(', ') }}</p>
                     
                     <div class="mt-auto">
                         <div class="flex justify-between items-center mb-4">

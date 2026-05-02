@@ -23,4 +23,9 @@ class Transaction extends Model
     {
         return $this->belongsTo(Book::class);
     }
+
+    public function fine()
+    {
+        return $this->hasOne(Fine::class);
+    }
 }

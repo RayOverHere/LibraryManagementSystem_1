@@ -17,12 +17,12 @@
                         <img src="{{ asset('storage/' . $book->image) }}" alt="{{ $book->title }}" class="absolute inset-0 w-full h-full object-cover opacity-60">
                     @endif
                     <div class="text-center relative z-10 p-4">
-                        <span class="text-silver text-xs uppercase tracking-widest">{{ $book->category }}</span>
+                        <span class="text-silver text-xs uppercase tracking-widest">{{ $book->category->name ?? 'None' }}</span>
                         <h3 class="text-white font-bold text-lg leading-tight">{{ $book->title }}</h3>
                     </div>
                 </div>
                 <div class="p-6">
-                    <p class="text-slate text-sm mb-2">By <span class="text-navy font-medium">{{ $book->author }}</span></p>
+                    <p class="text-slate text-sm mb-2">By <span class="text-navy font-medium">{{ $book->authors->pluck('name')->implode(', ') }}</span></p>
                     <p class="text-slate text-xs mb-4">ISBN: {{ $book->isbn }}</p>
                     
                     <div class="flex justify-between items-center mb-6">

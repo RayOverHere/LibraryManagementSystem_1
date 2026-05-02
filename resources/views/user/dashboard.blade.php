@@ -27,9 +27,9 @@
                                     </span>
                                 @endif
                             </div>
-                            <span class="text-[10px] bg-navy/5 text-navy px-2 py-1 rounded font-bold uppercase">{{ $transaction->book->category }}</span>
+                            <span class="text-[10px] bg-navy/5 text-navy px-2 py-1 rounded font-bold uppercase">{{ $transaction->book->category->name ?? 'None' }}</span>
                         </div>
-                        <p class="text-slate text-sm mb-4">By {{ $transaction->book->author }}</p>
+                        <p class="text-slate text-sm mb-4">By {{ $transaction->book->authors->pluck('name')->implode(', ') }}</p>
                         
                         <div class="mt-auto pt-4 border-t border-silver/10 flex justify-between items-center text-xs">
                             <span class="text-slate">Due Date:</span>

@@ -7,6 +7,11 @@ use Illuminate\Http\Request;
 
 class TransactionController extends Controller
 {
+    /**
+     * Display all transactions with eager loading.
+     * Uses a multi-table JOIN query via Eloquent's with() to load
+     * related users, books, categories, and authors efficiently.
+     */
     public function index(Request $request)
     {
         // Auto-mark overdue before viewing
@@ -14,7 +19,7 @@ class TransactionController extends Controller
             ->where('due_date', '<', now()->toDateString())
             ->update(['status' => 'overdue']);
 
-        $query = \App\Models\Transaction::with(['user', 'book']);
+        $query = \App\Models\Transaction::with(['user', 'book.category', 'book.authors']);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -40,6 +45,16 @@ class TransactionController extends Controller
         return view('admin.transactions.index', compact('transactions'));
     }
 
+    /**
+     * Update a transaction's status.
+     *
+     * Simplified logic — no more 'available' column to increment/decrement.
+     * Only 'stock' is adjusted when a book transitions to/from 'lost' status
+     * (since a lost book represents permanently reduced inventory).
+     *
+     * The CalculateLateFine trigger handles fine generation automatically
+     * when returned_at is set.
+     */
     public function update(Request $request, \App\Models\Transaction $transaction)
     {
         $validated = $request->validate([
@@ -53,28 +68,21 @@ class TransactionController extends Controller
         $book = $transaction->book;
 
         if ($oldStatus !== $newStatus) {
-            // Handle Stock and Available transitions
-            if (($oldStatus === 'borrowed' || $oldStatus === 'overdue') && $newStatus === 'returned') {
-                $book->increment('available');
-            } elseif (($oldStatus === 'borrowed' || $oldStatus === 'overdue') && $newStatus === 'lost') {
+            // Handle stock changes for lost/found books only.
+            // 'available' is no longer a stored column — it's computed via JOIN.
+            if ($newStatus === 'lost' && $oldStatus !== 'lost') {
+                // Book is lost — reduce total inventory
                 $book->decrement('stock');
-            } elseif ($oldStatus === 'returned' && ($newStatus === 'borrowed' || $newStatus === 'overdue')) {
-                $book->decrement('available');
-            } elseif ($oldStatus === 'returned' && $newStatus === 'lost') {
-                $book->decrement('stock');
-                $book->decrement('available');
-            } elseif ($oldStatus === 'lost' && ($newStatus === 'borrowed' || $newStatus === 'overdue')) {
+            } elseif ($oldStatus === 'lost' && $newStatus !== 'lost') {
+                // Book was found — restore total inventory
                 $book->increment('stock');
-            } elseif ($oldStatus === 'lost' && $newStatus === 'returned') {
-                $book->increment('stock');
-                $book->increment('available');
             }
 
-            // Set return date if returning
+            // Set return timestamp when marking as returned
             if ($newStatus === 'returned' && $oldStatus !== 'returned') {
-                $transaction->returned_at = now();
+                $validated['returned_at'] = now();
             } elseif ($oldStatus === 'returned' && $newStatus !== 'returned') {
-                $transaction->returned_at = null;
+                $validated['returned_at'] = null;
             }
         }
 

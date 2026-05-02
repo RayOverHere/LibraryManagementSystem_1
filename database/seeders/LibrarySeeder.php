@@ -8,52 +8,70 @@ use Illuminate\Database\Seeder;
 class LibrarySeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Seed the application's database with sample data.
+     * Uses firstOrCreate to be idempotent (safe to re-run).
      */
     public function run(): void
     {
         // Admin User
-        \App\Models\User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@gmail.com',
-            'password' => \Illuminate\Support\Facades\Hash::make('password'),
-            'role' => 'admin',
-        ]);
+        \App\Models\User::firstOrCreate(
+            ['email' => 'admin@gmail.com'],
+            [
+                'name' => 'Admin User',
+                'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                'role' => 'admin',
+            ]
+        );
 
         // Sample Member
-        \App\Models\User::create([
-            'name' => 'John Doe',
-            'email' => 'member@gmail.com',
-            'password' => \Illuminate\Support\Facades\Hash::make('password'),
-            'role' => 'member',
-        ]);
+        \App\Models\User::firstOrCreate(
+            ['email' => 'member@gmail.com'],
+            [
+                'name' => 'John Doe',
+                'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                'role' => 'member',
+            ]
+        );
 
-        // Sample Books
-        \App\Models\Book::create([
-            'title' => 'The Great Gatsby',
-            'author' => 'F. Scott Fitzgerald',
-            'isbn' => '9780743273565',
-            'category' => 'Fiction',
-            'stock' => 5,
-            'available' => 5,
-        ]);
+        // Categories (normalized 1NF entities)
+        $catFiction = \App\Models\Category::firstOrCreate(['name' => 'Fiction']);
+        $catScience = \App\Models\Category::firstOrCreate(['name' => 'Science']);
+        $catBiography = \App\Models\Category::firstOrCreate(['name' => 'Biography']);
 
-        \App\Models\Book::create([
-            'title' => 'A Brief History of Time',
-            'author' => 'Stephen Hawking',
-            'isbn' => '9780553380163',
-            'category' => 'Science',
-            'stock' => 3,
-            'available' => 3,
-        ]);
+        // Authors (normalized 1NF entities)
+        $authorFitzgerald = \App\Models\Author::firstOrCreate(['name' => 'F. Scott Fitzgerald']);
+        $authorHawking = \App\Models\Author::firstOrCreate(['name' => 'Stephen Hawking']);
+        $authorIsaacson = \App\Models\Author::firstOrCreate(['name' => 'Walter Isaacson']);
 
-        \App\Models\Book::create([
-            'title' => 'Steve Jobs',
-            'author' => 'Walter Isaacson',
-            'isbn' => '9781451648539',
-            'category' => 'Biography',
-            'stock' => 2,
-            'available' => 2,
-        ]);
+        // Books — NO 'available' column (3NF compliant, computed via JOIN)
+        $book1 = \App\Models\Book::firstOrCreate(
+            ['isbn' => '9780743273565'],
+            [
+                'title' => 'The Great Gatsby',
+                'category_id' => $catFiction->id,
+                'stock' => 5,
+            ]
+        );
+        $book1->authors()->sync([$authorFitzgerald->id]);
+
+        $book2 = \App\Models\Book::firstOrCreate(
+            ['isbn' => '9780553380163'],
+            [
+                'title' => 'A Brief History of Time',
+                'category_id' => $catScience->id,
+                'stock' => 3,
+            ]
+        );
+        $book2->authors()->sync([$authorHawking->id]);
+
+        $book3 = \App\Models\Book::firstOrCreate(
+            ['isbn' => '9781451648539'],
+            [
+                'title' => 'Steve Jobs',
+                'category_id' => $catBiography->id,
+                'stock' => 2,
+            ]
+        );
+        $book3->authors()->sync([$authorIsaacson->id]);
     }
 }

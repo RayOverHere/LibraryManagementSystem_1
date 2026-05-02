@@ -45,12 +45,18 @@ class BookController extends Controller
             return ['success' => false, 'message' => 'Book not found.'];
         });
     }
+
     /**
-     * Display a listing of the resource.
+     * Display a listing of books.
+     * Uses eager loading + JOIN-based availability computation.
      */
     public function index()
     {
-        $books = \App\Models\Book::latest()->get();
+        $books = \App\Models\Book::with(['category', 'authors'])
+                    ->withAvailability()
+                    ->latest()
+                    ->get();
+
         return view('admin.books.index', compact('books'));
     }
 
@@ -59,6 +65,11 @@ class BookController extends Controller
         return view('admin.books.create');
     }
 
+    /**
+     * Store a newly created book.
+     * Handles Category and Author relational data via firstOrCreate (normalized).
+     * No 'available' column — computed dynamically via JOIN.
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -77,18 +88,42 @@ class BookController extends Controller
             $validated['image'] = $path;
         }
 
-        $validated['available'] = $validated['stock'];
+        // Handle Category (Find or Create in normalized table)
+        $category = \App\Models\Category::firstOrCreate(['name' => $validated['category']]);
+        $validated['category_id'] = $category->id;
+        
+        // Remove non-column fields before mass assignment
+        $authorString = $validated['author'];
+        unset($validated['category'], $validated['author']);
 
-        \App\Models\Book::create($validated);
+        $book = \App\Models\Book::create($validated);
+
+        // Handle Authors (Find or Create, then sync pivot table)
+        $authors = explode(',', $authorString);
+        $authorIds = [];
+        foreach ($authors as $authorName) {
+            $authorName = trim($authorName);
+            if (!empty($authorName)) {
+                $author = \App\Models\Author::firstOrCreate(['name' => $authorName]);
+                $authorIds[] = $author->id;
+            }
+        }
+        
+        $book->authors()->sync($authorIds);
 
         return redirect()->route('admin.books.index')->with('success', 'Book added successfully.');
     }
 
     public function edit(\App\Models\Book $book)
     {
+        $book->load(['category', 'authors']);
         return view('admin.books.edit', compact('book'));
     }
 
+    /**
+     * Update a book.
+     * No 'available' adjustment needed — computed dynamically via JOIN.
+     */
     public function update(Request $request, \App\Models\Book $book)
     {
         $validated = $request->validate([
@@ -110,11 +145,28 @@ class BookController extends Controller
             $validated['image'] = $path;
         }
 
-        // Adjust availability based on stock change
-        $diff = $validated['stock'] - $book->stock;
-        $validated['available'] = $book->available + $diff;
+        // Handle Category
+        $category = \App\Models\Category::firstOrCreate(['name' => $validated['category']]);
+        $validated['category_id'] = $category->id;
+        
+        // Handle Authors string
+        $authorString = $validated['author'];
+        unset($validated['category'], $validated['author']);
 
         $book->update($validated);
+
+        // Sync Authors
+        $authors = explode(',', $authorString);
+        $authorIds = [];
+        foreach ($authors as $authorName) {
+            $authorName = trim($authorName);
+            if (!empty($authorName)) {
+                $author = \App\Models\Author::firstOrCreate(['name' => $authorName]);
+                $authorIds[] = $author->id;
+            }
+        }
+        
+        $book->authors()->sync($authorIds);
 
         return redirect()->route('admin.books.index')->with('success', 'Book updated successfully.');
     }

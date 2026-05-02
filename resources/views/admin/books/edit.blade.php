@@ -26,7 +26,7 @@
 
                     <div>
                         <label class="block text-sm font-medium text-slate mb-1">Author</label>
-                        <input type="text" name="author" value="{{ old('author', $book->author) }}" required
+                        <input type="text" name="author" value="{{ old('author', $book->authors->pluck('name')->implode(', ')) }}" required
                             class="w-full px-4 py-2 border border-silver rounded-lg focus:ring-2 focus:ring-navy focus:border-transparent outline-none transition">
                     </div>
 
@@ -40,12 +40,12 @@
                         <label class="block text-sm font-medium text-slate mb-1">Category</label>
                         <select name="category" required
                             class="w-full px-4 py-2 border border-silver rounded-lg focus:ring-2 focus:ring-navy focus:border-transparent outline-none transition">
-                            <option value="None" {{ $book->category == 'None' ? 'selected' : '' }}>None</option>
-                            <option value="Fiction" {{ $book->category == 'Fiction' ? 'selected' : '' }}>Fiction</option>
-                            <option value="Non-Fiction" {{ $book->category == 'Non-Fiction' ? 'selected' : '' }}>Non-Fiction</option>
-                            <option value="Science" {{ $book->category == 'Science' ? 'selected' : '' }}>Science</option>
-                            <option value="History" {{ $book->category == 'History' ? 'selected' : '' }}>History</option>
-                            <option value="Biography" {{ $book->category == 'Biography' ? 'selected' : '' }}>Biography</option>
+                            <option value="None" {{ ($book->category->name ?? 'None') == 'None' ? 'selected' : '' }}>None</option>
+                            <option value="Fiction" {{ ($book->category->name ?? '') == 'Fiction' ? 'selected' : '' }}>Fiction</option>
+                            <option value="Non-Fiction" {{ ($book->category->name ?? '') == 'Non-Fiction' ? 'selected' : '' }}>Non-Fiction</option>
+                            <option value="Science" {{ ($book->category->name ?? '') == 'Science' ? 'selected' : '' }}>Science</option>
+                            <option value="History" {{ ($book->category->name ?? '') == 'History' ? 'selected' : '' }}>History</option>
+                            <option value="Biography" {{ ($book->category->name ?? '') == 'Biography' ? 'selected' : '' }}>Biography</option>
                         </select>
                     </div>
 
