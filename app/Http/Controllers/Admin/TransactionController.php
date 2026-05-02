@@ -68,21 +68,17 @@ class TransactionController extends Controller
         $book = $transaction->book;
 
         if ($oldStatus !== $newStatus) {
-            // Handle stock changes for lost/found books only.
-            // 'available' is no longer a stored column — it's computed via JOIN.
-            if ($newStatus === 'lost' && $oldStatus !== 'lost') {
-                // Book is lost — reduce total inventory
-                $book->decrement('stock');
-            } elseif ($oldStatus === 'lost' && $newStatus !== 'lost') {
-                // Book was found — restore total inventory
-                $book->increment('stock');
+            // Use Stored Procedure for returns to ensure atomicity and trigger activation
+            if ($newStatus === 'returned' && $oldStatus !== 'returned') {
+                \Illuminate\Support\Facades\DB::select('CALL ReturnBook(?)', [$transaction->id]);
+                return redirect()->back()->with('success', 'Book returned successfully via stored procedure.');
             }
 
-            // Set return timestamp when marking as returned
-            if ($newStatus === 'returned' && $oldStatus !== 'returned') {
-                $validated['returned_at'] = now();
-            } elseif ($oldStatus === 'returned' && $newStatus !== 'returned') {
-                $validated['returned_at'] = null;
+            // Handle stock changes for lost/found books only.
+            if ($newStatus === 'lost' && $oldStatus !== 'lost') {
+                $book->decrement('stock');
+            } elseif ($oldStatus === 'lost' && $newStatus !== 'lost') {
+                $book->increment('stock');
             }
         }
 

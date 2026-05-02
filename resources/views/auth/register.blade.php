@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="max-w-md mx-auto">
-        <div class="bg-white p-8 rounded-xl shadow-2xl border border-silver/20 glass">
+        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl border border-silver/20 glass">
             <h2 class="text-3xl font-bold text-navy mb-6 text-center">Create Account</h2>
             
             <form method="POST" action="{{ route('register') }}">
@@ -27,8 +27,8 @@
 
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-slate mb-1">Phone Number</label>
-                    <div class="flex gap-2">
-                        <select name="country_code" class="w-24 px-2 py-2 border border-silver rounded-lg focus:ring-2 focus:ring-navy outline-none transition text-sm">
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <select name="country_code" class="w-full sm:w-24 px-2 py-2 border border-silver rounded-lg focus:ring-2 focus:ring-navy outline-none transition text-sm">
                             <option value="+62">+62 (ID)</option>
                             <option value="+1">+1 (US)</option>
                             <option value="+44">+44 (UK)</option>

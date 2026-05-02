@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="max-w-md mx-auto">
-        <div class="bg-white p-8 rounded-xl shadow-2xl border border-silver/20 glass">
+        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl border border-silver/20 glass">
             <h2 class="text-3xl font-bold text-navy mb-6 text-center">Welcome Back</h2>
             
             @if($errors->any())

@@ -99,14 +99,11 @@ class BookController extends Controller
         $book = \App\Models\Book::create($validated);
 
         // Handle Authors (Find or Create, then sync pivot table)
-        $authors = explode(',', $authorString);
+        $authors = array_filter(array_map('trim', explode(',', $authorString)));
         $authorIds = [];
         foreach ($authors as $authorName) {
-            $authorName = trim($authorName);
-            if (!empty($authorName)) {
-                $author = \App\Models\Author::firstOrCreate(['name' => $authorName]);
-                $authorIds[] = $author->id;
-            }
+            $author = \App\Models\Author::firstOrCreate(['name' => $authorName]);
+            $authorIds[] = $author->id;
         }
         
         $book->authors()->sync($authorIds);
@@ -156,14 +153,11 @@ class BookController extends Controller
         $book->update($validated);
 
         // Sync Authors
-        $authors = explode(',', $authorString);
+        $authors = array_filter(array_map('trim', explode(',', $authorString)));
         $authorIds = [];
         foreach ($authors as $authorName) {
-            $authorName = trim($authorName);
-            if (!empty($authorName)) {
-                $author = \App\Models\Author::firstOrCreate(['name' => $authorName]);
-                $authorIds[] = $author->id;
-            }
+            $author = \App\Models\Author::firstOrCreate(['name' => $authorName]);
+            $authorIds[] = $author->id;
         }
         
         $book->authors()->sync($authorIds);
